@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: weather-etl-pipeline
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/weather_db
+    username: weather_user
+    password: weather_pass
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# Настройки для работы с Open-Meteo API
+weather:
+  api:
+    base-url: https://api.open-meteo.com/v1/forecast
+    timeout: 30s
+    retry:
+      max-attempts: 3
+      delay: 1s
+
+  default-location:
+    latitude: 55.0344
+    longitude: 82.9434
+
+  output:
+    csv-path: ./output/weather_data.csv
+    batch-size: 1000
+
+# Настройки логирования
+logging:
+  level:
+    com.weatheretl: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Настройки Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+---
+# Профиль для тестирования
+spring:
+  config:
+    activate:
+      on-profile: test
+
+#  datasource:
+#    url: jdbc:h2:mem:testdb
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password: password
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+
+weather:
+  api:
+    base-url: http://localhost:8089  # WireMock server
