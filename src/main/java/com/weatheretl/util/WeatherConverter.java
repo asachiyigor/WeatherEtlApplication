@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class WeatherConverter {
-
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     public static Double fahrenheitToCelsius(Double fahrenheit) {
@@ -61,17 +60,14 @@ public class WeatherConverter {
         if (values == null || values.isEmpty()) {
             return null;
         }
-
         double sum = 0.0;
         int count = 0;
-
         for (Number value : values) {
             if (value != null) {
                 sum += value.doubleValue();
                 count++;
             }
         }
-
         return count > 0 ? sum / count : null;
     }
 
@@ -79,28 +75,13 @@ public class WeatherConverter {
         if (values == null || values.isEmpty()) {
             return null;
         }
-
         double sum = 0.0;
         for (Number value : values) {
             if (value != null) {
                 sum += value.doubleValue();
             }
         }
-
         return sum;
-    }
-
-    public static <T> List<T> filterByDaylight(List<T> values, List<Long> timestamps,
-                                               Long sunriseTimestamp, Long sunsetTimestamp) {
-        if (values == null || timestamps == null ||
-                sunriseTimestamp == null || sunsetTimestamp == null ||
-                values.size() != timestamps.size()) {
-            return values;
-        }
-
-        return values.stream()
-                .filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toList());
     }
 
     public static List<Integer> getDaylightIndices(List<Long> timestamps,
@@ -108,7 +89,6 @@ public class WeatherConverter {
         if (timestamps == null || sunriseTimestamp == null || sunsetTimestamp == null) {
             return List.of();
         }
-
         return java.util.stream.IntStream.range(0, timestamps.size())
                 .filter(i -> {
                     Long timestamp = timestamps.get(i);
@@ -129,16 +109,12 @@ public class WeatherConverter {
                 values.size() != timestamps.size()) {
             return null;
         }
-
         List<Integer> daylightIndices = getDaylightIndices(timestamps, sunriseTimestamp, sunsetTimestamp);
-
         if (daylightIndices.isEmpty()) {
             return null;
         }
-
         double sum = 0.0;
         int count = 0;
-
         for (Integer index : daylightIndices) {
             Number value = values.get(index);
             if (value != null) {
@@ -146,7 +122,6 @@ public class WeatherConverter {
                 count++;
             }
         }
-
         return count > 0 ? sum / count : null;
     }
 
@@ -165,16 +140,13 @@ public class WeatherConverter {
         if (daylightIndices.isEmpty()) {
             return null;
         }
-
         double sum = 0.0;
-
         for (Integer index : daylightIndices) {
             Number value = values.get(index);
             if (value != null) {
                 sum += value.doubleValue();
             }
         }
-
         return sum;
     }
 
@@ -182,7 +154,6 @@ public class WeatherConverter {
         if (value == null) {
             return null;
         }
-
         double multiplier = Math.pow(10, decimals);
         return Math.round(value * multiplier) / multiplier;
     }

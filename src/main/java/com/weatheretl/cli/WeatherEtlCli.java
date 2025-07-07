@@ -5,6 +5,7 @@ import com.weatheretl.model.api.WeatherApiModels.WeatherApiResponse;
 import com.weatheretl.service.WeatherEtlService;
 import com.weatheretl.service.WeatherEtlService.EtlResult;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,9 @@ public class WeatherEtlCli implements CommandLineRunner {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    @Setter
+    private boolean testMode = false;
+
     @Override
     public void run(String... args) throws Exception {
         if (args.length == 0) {
@@ -33,106 +37,89 @@ public class WeatherEtlCli implements CommandLineRunner {
             printWelcomeMessage();
             return;
         }
-
         try {
             processCliArguments(args);
         } catch (Exception e) {
             log.error("CLI execution failed", e);
             System.err.println("Error: " + e.getMessage());
             printUsage();
-            System.exit(1);
+            if (!testMode) {
+                System.exit(1);
+            } else {
+                throw new RuntimeException("CLI execution failed: " + e.getMessage(), e);
+            }
         }
     }
 
     private void processCliArguments(String[] args) throws Exception {
         List<String> arguments = Arrays.asList(args);
-
         if (arguments.contains("--help") || arguments.contains("-h")) {
             printUsage();
             return;
         }
-
         String source = getArgumentValue(arguments, "--source");
         String output = getArgumentValue(arguments, "--output");
-
         if (source == null) {
             throw new IllegalArgumentException("Source parameter is required. Use --source=api or --source=json");
         }
-
         if (output == null) {
             throw new IllegalArgumentException("Output parameter is required. Use --output=csv, --output=database, or --output=all");
         }
-
-        EtlResult result;
-
-        switch (source.toLowerCase()) {
-            case "api":
-                result = processApiSource(arguments, output);
-                break;
-            case "json":
-                result = processJsonSource(arguments, output);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid source: " + source + ". Use 'api' or 'json'");
-        }
-
+        EtlResult result = switch (source.toLowerCase()) {
+            case "api" -> processApiSource(arguments, output);
+            case "json" -> processJsonSource(arguments, output);
+            default -> throw new IllegalArgumentException("Invalid source: " + source + ". Use 'api' or 'json'");
+        };
         printResult(result);
-        System.exit(result.isSuccess() ? 0 : 1);
+        if (!testMode) {
+            System.exit(result.isSuccess() ? 0 : 1);
+        }
     }
 
     private EtlResult processApiSource(List<String> arguments, String output) {
         String startDateStr = getArgumentValue(arguments, "--start-date");
         String endDateStr = getArgumentValue(arguments, "--end-date");
-
         if (startDateStr == null || endDateStr == null) {
             throw new IllegalArgumentException("Start date and end date are required for API source. Use --start-date and --end-date");
         }
-
         LocalDate startDate;
         LocalDate endDate;
-
         try {
             startDate = LocalDate.parse(startDateStr, DATE_FORMATTER);
             endDate = LocalDate.parse(endDateStr, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format. Use yyyy-MM-dd format");
         }
-
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Start date must be before or equal to end date");
         }
-
         String csvPath = getArgumentValue(arguments, "--csv-path");
-
         return switch (output.toLowerCase()) {
             case "csv" -> weatherEtlService.executeApiToCsv(startDate, endDate, csvPath);
             case "database" -> weatherEtlService.executeApiToDatabase(startDate, endDate);
             case "all" -> weatherEtlService.executeApiToCsvAndDatabase(startDate, endDate, csvPath);
-            default -> throw new IllegalArgumentException("Invalid output: " + output + ". Use 'csv', 'database', or 'all'");
+            default ->
+                    throw new IllegalArgumentException("Invalid output: " + output + ". Use 'csv', 'database', or 'all'");
         };
     }
 
     private EtlResult processJsonSource(List<String> arguments, String output) throws Exception {
         String jsonPath = getArgumentValue(arguments, "--json-path");
-
         if (jsonPath == null) {
             throw new IllegalArgumentException("JSON path is required for JSON source. Use --json-path");
         }
-
         File jsonFile = new File(jsonPath);
         if (!jsonFile.exists()) {
             throw new IllegalArgumentException("JSON file not found: " + jsonPath);
         }
-
         WeatherApiResponse apiResponse = objectMapper.readValue(jsonFile, WeatherApiResponse.class);
-
         String csvPath = getArgumentValue(arguments, "--csv-path");
-
         return switch (output.toLowerCase()) {
             case "csv" -> weatherEtlService.processJsonData(apiResponse, true, false, csvPath);
             case "database" -> weatherEtlService.processJsonData(apiResponse, false, true, csvPath);
             case "all" -> weatherEtlService.processJsonData(apiResponse, true, true, csvPath);
-            default -> throw new IllegalArgumentException("Invalid output: " + output + ". Use 'csv', 'database', or 'all'");
+            default ->
+                    throw new IllegalArgumentException("Invalid output: " + output + ". Use 'csv', 'database', or 'all'");
         };
     }
 

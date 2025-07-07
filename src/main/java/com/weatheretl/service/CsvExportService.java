@@ -21,7 +21,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CsvExportService {
-
     private final WeatherEtlConfig config;
 
     public void exportToCsv(List<WeatherRecord> records) throws CsvExportException {
@@ -50,7 +49,6 @@ public class CsvExportService {
                 beanToCsv.write(records);
                 log.info("Successfully exported {} records to CSV file: {}", records.size(), filePath);
             }
-
         } catch (IOException e) {
             log.error("Failed to write CSV file: {}", filePath, e);
             throw new CsvExportException("Failed to write CSV file: " + e.getMessage(), e);
@@ -64,13 +62,10 @@ public class CsvExportService {
         try {
             Path path = Paths.get(filePath);
             Path parentDir = path.getParent();
-
             if (parentDir != null && !Files.exists(parentDir)) {
                 return Files.isWritable(parentDir.getParent());
             }
-
             return Files.isWritable(parentDir != null ? parentDir : path);
-
         } catch (Exception e) {
             log.warn("Cannot check if path is writable: {}", filePath, e);
             return false;
@@ -111,14 +106,12 @@ public class CsvExportService {
 
     public CsvFileInfo getCsvFileInfo(String filePath) {
         Path path = Paths.get(filePath);
-
         if (!Files.exists(path)) {
             return CsvFileInfo.builder()
                     .exists(false)
                     .path(filePath)
                     .build();
         }
-
         try {
             return CsvFileInfo.builder()
                     .exists(true)

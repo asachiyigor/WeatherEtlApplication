@@ -3,9 +3,9 @@ package com.weatheretl.service;
 import com.weatheretl.config.WeatherEtlConfig;
 import com.weatheretl.model.api.WeatherApiModels.WeatherApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -43,9 +43,7 @@ public class WeatherApiClient {
                                                LocalDate startDate, LocalDate endDate) {
         log.info("Fetching weather data for coordinates: {}, {} from {} to {}",
                 latitude, longitude, startDate, endDate);
-
         Map<String, Object> params = buildApiParams(latitude, longitude, startDate, endDate);
-
         try {
             WeatherApiResponse response = webClient
                     .get()
@@ -79,7 +77,6 @@ public class WeatherApiClient {
     private Map<String, Object> buildApiParams(double latitude, double longitude,
                                                LocalDate startDate, LocalDate endDate) {
         Map<String, Object> params = new HashMap<>();
-
         params.put("latitude", latitude);
         params.put("longitude", longitude);
         params.put("start_date", startDate.format(DATE_FORMATTER));

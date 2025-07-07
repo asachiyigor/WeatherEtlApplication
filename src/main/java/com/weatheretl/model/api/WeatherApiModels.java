@@ -1,12 +1,14 @@
 package com.weatheretl.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 public class WeatherApiModels {
 
+    @Builder
     @Data
     public static class WeatherApiResponse {
         private double latitude;
@@ -87,6 +89,7 @@ public class WeatherApiModels {
         private String snowfall;
     }
 
+    @Builder
     @Data
     public static class HourlyData {
         private List<Long> time;
@@ -148,6 +151,7 @@ public class WeatherApiModels {
         private String daylightDuration;
     }
 
+    @Builder
     @Data
     public static class DailyData {
         private List<Long> time;

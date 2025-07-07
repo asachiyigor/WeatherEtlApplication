@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/weather_db
-    username: weather_user
-    password: weather_pass
+    username: postgres
+    password: 0859
 
   jpa:
     hibernate:
@@ -64,12 +64,6 @@ spring:
     activate:
       on-profile: test
 
-#  datasource:
-#    url: jdbc:h2:mem:testdb
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password: password
-
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -77,4 +71,4 @@ spring:
 
 weather:
   api:
-    base-url: http://localhost:8089  # WireMock server
+    base-url: http://localhost:8089
